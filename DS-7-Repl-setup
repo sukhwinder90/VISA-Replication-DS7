@@ -1,0 +1,171 @@
+
+########### First RS SERVER setup ###############3
+
+/opt/userstore/opendj/bin/stop-ds
+sudo rm -rf /opt/userstore
+sudo mkdir /opt/userstore
+sudo chown forgeuser.iam /opt/userstore/
+cd /opt/userstore/
+
+unzip /opt/softwares/forgerock/DS/DS-7.2.0.zip 
+
+
+  /opt/userstore/opendj/setup \
+          --instancePath /opt/userstore/opendj \
+          --deploymentId ACl6udAxdPj9JJ_1eRcXCZQfIBkJCtw5CBVN1bkVDXje78Wmg2_0IGSA \
+          --deploymentIdPassword password \
+          --rootUserDn uid=admin \
+          --rootUserPassword password \
+          --monitorUserDn uid=Monitor \
+          --monitorUserPassword password \
+          --hostname rep7.example.com \
+          --adminConnectorPort 4444 \
+          --start \
+          --replicationPort 8989 \
+          --bootstrapReplicationServer rep7.example.com:8989 --acceptLicense
+          
+######### Second RS server setup ##################33
+
+/opt/userstore/opendj/bin/stop-ds
+sudo rm -rf /opt/userstore
+sudo mkdir /opt/userstore
+sudo chown forgeuser.iam /opt/userstore/
+cd /opt/userstore/
+
+unzip /opt/softwares/forgerock/DS/DS-7.2.0.zip 
+
+
+
+ /opt/userstore/opendj/setup \
+          --instancePath /opt/userstore/opendj \
+          --deploymentId ACl6udAxdPj9JJ_1eRcXCZQfIBkJCtw5CBVN1bkVDXje78Wmg2_0IGSA \
+          --deploymentIdPassword password \
+          --rootUserDn uid=admin \
+          --rootUserPassword password \
+          --monitorUserDn uid=Monitor \
+          --monitorUserPassword password \
+          --hostname rep72.example.com \
+          --adminConnectorPort 4444 \
+          --start \
+          --replicationPort 8989 \
+          --bootstrapReplicationServer rep7.example.com:8989 --bootstrapReplicationServer rep72.example.com:8989 --acceptLicense 
+
+
+###### First DS server setup ######################3333
+
+/opt/userstore/opendj/bin/stop-ds
+sudo rm -rf /opt/userstore
+sudo mkdir /opt/userstore
+sudo chown forgeuser.iam /opt/userstore/
+cd /opt/userstore/
+
+unzip /opt/softwares/forgerock/DS/DS-7.2.0.zip 
+
+
+
+/opt/userstore/opendj/setup \
+          --instancePath /opt/userstore/opendj \
+          --acceptLicense --serverId 3 \
+          --deploymentKey ACl6udAxdPj9JJ_1eRcXCZQfIBkJCtw5CBVN1bkVDXje78Wmg2_0IGSA \
+          --deploymentKeyPassword password \
+          --rootUserDn uid=admin \
+          --rootUserPassword  password \
+	  --monitorUserDn uid=Monitor \
+          --monitorUserPassword password \
+          --hostname ds3.example.com \
+          --adminConnectorPort 4444 \
+          --start \
+          --ldapPort 1389 \
+          --ldapsPort 1636 \
+          --profile ds-user-data \
+          --set ds-user-data/baseDn:dc=example,dc=com \
+          --bootstrapReplicationServer rep7.example.com:8989 \
+          --bootstrapReplicationServer rep72.example.com:8989 
+
+######### Second DS server setup #######################
+
+/opt/userstore/opendj/bin/stop-ds
+sudo rm -rf /opt/userstore
+sudo mkdir /opt/userstore
+sudo chown forgeuser.iam /opt/userstore/
+cd /opt/userstore/
+
+unzip /opt/softwares/forgerock/DS/DS-7.2.0.zip 
+
+
+/opt/userstore/opendj/setup \
+          --instancePath /opt/userstore/opendj \
+          --acceptLicense --serverId 4 \
+          --deploymentKey ACl6udAxdPj9JJ_1eRcXCZQfIBkJCtw5CBVN1bkVDXje78Wmg2_0IGSA \
+          --deploymentKeyPassword password \
+          --rootUserDn uid=admin \
+          --rootUserPassword  password \
+	  --monitorUserDn uid=Monitor \
+          --monitorUserPassword password \
+          --hostname ds4.example.com \
+          --adminConnectorPort 4444 \
+          --start \
+          --ldapPort 1389 \
+          --ldapsPort 1636 \
+          --profile ds-user-data \
+          --set ds-user-data/baseDn:dc=example,dc=com \
+          --bootstrapReplicationServer rep7.example.com:8989 \
+          --bootstrapReplicationServer rep72.example.com:8989 
+          
+
+
+/dsrepl status -X -h localhost -p 4444  -D uid=admin -w password --showChangelogs -b dc=example,dc=com  --showReplicas
+
+/opt/userstore/opendj/bin/ldapsearch -h rep7.example.com -p 4444 -X -Z  -D uid=admin -w password -b cn=changelog objectclass=*
+
+/opt/userstore/opendj/bin/ldapsearch -h rep72.example.com -p 4444 -X -Z  -D uid=admin -w password -b cn=changelog objectclass=*
+
+
+
+
+######### To add another RS server to the other RS server ############
+
+dsconfig set-synchronization-provider-prop \
+          --provider-name Multimaster\ Synchronization \
+          --add bootstrap-replication-server:rep72.example.com:8989 \
+          --hostname localhost \
+          --port 4444 \
+          --bindDn uid=admin \
+          --trustAll \
+          --bindPassword ****** \
+          --no-prompt
+
+######## To disable the replication on the directory server ############33
+
+dsconfig set-synchronization-provider-prop \
+          --provider-name Multimaster\ Synchronization \
+          --set enabled:false \
+          --hostname localhost \
+          --port 4444 \
+          --bindDn uid=admin \
+          --trustAll \
+          --bindPassword ****** \
+          --no-prompt
+          
+          
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          
+                     
